@@ -32,15 +32,9 @@
 
             <hr>
 
-            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">
-                <div>
-                    <label>バック項目（単価 / 個数）</label>
-                    <div class="muted">ドリンク・チェキ等。行を追加して自由に編集できます。</div>
-                </div>
-                <div class="actions">
-                    <button id="addItem" class="ghost">行を追加</button>
-                    <button id="resetItems" class="ghost">リセット</button>
-                </div>
+            <div>
+                <label>バック項目（単価 / 個数）</label>
+                <div class="muted">ドリンク・チェキ等。行を追加して自由に編集できます。</div>
             </div>
 
             <div class="table-wrap">
@@ -58,20 +52,16 @@
                 </table>
             </div>
 
-            <div class="controls">
+            <!-- 行追加ボタンをテーブル下に移動 -->
+            <div style="margin-top:10px; display:flex; gap:10px;">
+                <button id="addItem" class="ghost">行を追加</button>
+                <button id="resetItems" class="ghost">リセット</button>
                 <button id="calc">計算する</button>
-                <button id="save" class="ghost">履歴に保存</button>
-                <button id="clearStore" class="ghost">履歴をクリア</button>
             </div>
 
             <div class="summary" id="summary"></div>
 
             <div class="footer">表示は概算です。</div>
-        </section>
-
-        <section id="historyWrap" class="card">
-            <h3>履歴</h3>
-            <div id="historyList" class="muted">保存された履歴はまだありません。</div>
         </section>
     </div>
 

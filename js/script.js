@@ -3,7 +3,6 @@
 const $ = (id) => document.getElementById(id);
 let items = [];
 
-// 初期アイテム
 const defaultItems = [
     { name: "ドリンク", price: 1200, count: 0 },
     { name: "チェキ", price: 1500, count: 0 },
@@ -11,7 +10,6 @@ const defaultItems = [
     { name: "フード", price: 2200, count: 0 },
 ];
 
-// テーブル描画（初回・行追加・リセット時のみ）
 function renderItems() {
     const tbody = $("itemsTable").querySelector("tbody");
     tbody.innerHTML = "";
@@ -65,8 +63,8 @@ function renderItems() {
         btnDel.textContent = "削除";
         btnDel.addEventListener("click", () => {
             items.splice(idx, 1);
-            tbody.removeChild(tr); // 行削除
-            calculate(); // 合計更新
+            tbody.removeChild(tr);
+            calculate();
         });
         tdDel.appendChild(btnDel);
 
@@ -74,10 +72,9 @@ function renderItems() {
         tbody.appendChild(tr);
     });
 
-    calculate(); // 初回描画時も合計計算
+    calculate();
 }
 
-// 行売上更新（リアルタイム）
 function updateRowTotal(idx) {
     const tbody = $("itemsTable").querySelector("tbody");
     if (tbody.rows[idx]) {
@@ -86,7 +83,6 @@ function updateRowTotal(idx) {
     }
 }
 
-// バック率判定
 function getBackRate(recoveryPercent) {
     if (recoveryPercent <= 100) return 0.1;
     if (recoveryPercent <= 150) return 0.15;
@@ -97,7 +93,6 @@ function getBackRate(recoveryPercent) {
     return 0.6;
 }
 
-// 計算（リアルタイム）
 function calculate() {
     const wage = +$("wage").value;
     const hours = +$("hours").value;
@@ -117,24 +112,12 @@ function calculate() {
         return div;
     };
 
-    summaryWrap.appendChild(
-        createPill("時給ベース", base.toLocaleString() + " 円")
-    );
-    summaryWrap.appendChild(
-        createPill("売上合計", totalSales.toLocaleString() + " 円")
-    );
-    summaryWrap.appendChild(
-        createPill("回収率", recoveryPercent.toFixed(1) + " %")
-    );
-    summaryWrap.appendChild(
-        createPill("適用バック率", (backRate * 100).toFixed(1) + " %")
-    );
-    summaryWrap.appendChild(
-        createPill("バック額", backAmount.toLocaleString() + " 円")
-    );
-    summaryWrap.appendChild(
-        createPill("合計（概算）", totalPayment.toLocaleString() + " 円")
-    );
+    summaryWrap.appendChild(createPill("時給ベース", base.toLocaleString() + " 円"));
+    summaryWrap.appendChild(createPill("売上合計", totalSales.toLocaleString() + " 円"));
+    summaryWrap.appendChild(createPill("回収率", recoveryPercent.toFixed(1) + " %"));
+    summaryWrap.appendChild(createPill("適用バック率", (backRate * 100).toFixed(1) + " %"));
+    summaryWrap.appendChild(createPill("バック額", backAmount.toLocaleString() + " 円"));
+    summaryWrap.appendChild(createPill("合計（概算）", totalPayment.toLocaleString() + " 円"));
 }
 
 // 行操作
@@ -148,49 +131,12 @@ function resetItems() {
     renderItems();
 }
 
-// 履歴
-function saveHistory() {
-    const data = {
-        wage: $("wage").value,
-        hours: $("hours").value,
-        items: JSON.parse(JSON.stringify(items)),
-    };
-    let history = JSON.parse(localStorage.getItem("kemosalHistory") || "[]");
-    history.unshift(data);
-    localStorage.setItem("kemosalHistory", JSON.stringify(history));
-    renderHistory();
-}
-
-function renderHistory() {
-    const list = $("historyList");
-    list.innerHTML = "";
-    let history = JSON.parse(localStorage.getItem("kemosalHistory") || "[]");
-    if (!history.length) {
-        list.textContent = "保存された履歴はまだありません。";
-        return;
-    }
-    history.forEach((h, idx) => {
-        const div = document.createElement("div");
-        div.className = "pill";
-        div.textContent = `${idx + 1}. 時給:${h.wage}, 労働時間:${h.hours
-            }, バック:${h.items.map((i) => i.name + "x" + i.count).join(",")}`;
-        list.appendChild(div);
-    });
-}
-
-function clearHistory() {
-    localStorage.removeItem("kemosalHistory");
-    renderHistory();
-}
-
 // 初期化
 window.addEventListener("load", () => {
     resetItems();
     $("calc").addEventListener("click", calculate);
     $("addItem").addEventListener("click", addItem);
     $("resetItems").addEventListener("click", resetItems);
-    $("save").addEventListener("click", saveHistory);
-    $("clearStore").addEventListener("click", clearHistory);
     $("wage").addEventListener("input", calculate);
     $("hours").addEventListener("input", calculate);
 });
