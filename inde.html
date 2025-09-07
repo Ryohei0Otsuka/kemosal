@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>kemosal — 給与計算</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <div class="wrap">
+        <header>
+            <div class="logo">kemosal</div>
+            <div>
+                <h1>給与計算アプリ</h1>
+                <p class="muted">時給 × 月の労働時間 ＋ バック（歩合）で月給を算出。バック率は手入力 or 自動判定。</p>
+            </div>
+        </header>
+
+        <!-- 入力エリア -->
+        <section class="card">
+            <div class="grid">
+                <div>
+                    <label>時給 (円)</label>
+                    <input id="wage" type="number" value="1200" min="0" />
+                </div>
+                <div>
+                    <label>月の労働時間 (時間)</label>
+                    <input id="hours" type="number" value="160" min="0" step="0.5" />
+                </div>
+                <div>
+                    <label>全体歩合率（%） ※未入力で自動判定</label>
+                    <input id="overallRate" type="number" value="0" min="0" max="100" />
+                </div>
+            </div>
+
+            <hr>
+
+            <!-- バック項目 -->
+            <div style="display:flex;justify-content:space-between;align-items:center">
+                <div>
+                    <label>バック項目（単価 / 個数 / 回収率）</label>
+                    <div class="muted">ドリンク・チケット等。行を追加して使えます。</div>
+                </div>
+                <div class="actions">
+                    <button id="addItem" class="ghost">行を追加</button>
+                    <button id="resetItems" class="ghost">リセット</button>
+                </div>
+            </div>
+
+            <table id="itemsTable" aria-label="バック項目テーブル">
+                <thead>
+                    <tr>
+                        <th>名前</th>
+                        <th>単価 (円)</th>
+                        <th>個数</th>
+                        <th>回収率 (%)</th>
+                        <th>バック額 (円)</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+
+            <div class="controls">
+                <button id="calc">計算する</button>
+                <button id="save" class="ghost">履歴に保存</button>
+                <button id="clearStore" class="ghost">履歴をクリア</button>
+            </div>
+
+            <div class="summary" id="summary"></div>
+
+            <div class="footer">
+                表示は概算です。バック率は入力優先（0の場合は売上倍率から自動判定）。
+            </div>
+        </section>
+
+        <!-- 履歴 -->
+        <section id="historyWrap" class="card">
+            <h3>履歴</h3>
+            <div id="historyList" class="muted">保存された履歴はまだありません。</div>
+        </section>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+
+</html>
