@@ -3,8 +3,8 @@
 // 初期データ（必ず配列を閉じること）
 const defaultItems = [
     { name: 'ドリンク', price: 1200, count: 0, rate: 100 },
-    { name: 'チケット', price: 1500, count: 0, rate: 100 },
-    { name: '宿チケ', price: 2000, count: 0, rate: 100 },
+    { name: 'チェキ', price: 1500, count: 0, rate: 100 },
+    { name: '宿チェキ', price: 2000, count: 0, rate: 100 },
     { name: 'フード', price: 2200, count: 0, rate: 100 }
 ];
 
