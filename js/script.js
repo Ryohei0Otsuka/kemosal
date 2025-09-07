@@ -23,16 +23,17 @@ function renderItems() {
         const inputName = document.createElement('input');
         inputName.type = 'text';
         inputName.value = item.name;
+        inputName.placeholder = '項目名';
         inputName.addEventListener('input', e => { items[idx].name = e.target.value; });
         tdName.appendChild(inputName);
 
-        // 単価入力
+        // 単価入力（自由編集可能）
         const tdPrice = document.createElement('td');
         const inputPrice = document.createElement('input');
         inputPrice.type = 'number';
         inputPrice.min = 0;
         inputPrice.value = item.price;
-        inputPrice.addEventListener('input', e => { items[idx].price = +e.target.value; });
+        inputPrice.addEventListener('input', e => { items[idx].price = +e.target.value; updateRowTotal(idx); });
         tdPrice.appendChild(inputPrice);
 
         // 個数入力
@@ -41,7 +42,7 @@ function renderItems() {
         inputCount.type = 'number';
         inputCount.min = 0;
         inputCount.value = item.count;
-        inputCount.addEventListener('input', e => { items[idx].count = +e.target.value; });
+        inputCount.addEventListener('input', e => { items[idx].count = +e.target.value; updateRowTotal(idx); });
         tdCount.appendChild(inputCount);
 
         // 売上
@@ -59,6 +60,14 @@ function renderItems() {
         tr.append(tdName, tdPrice, tdCount, tdTotal, tdDel);
         tbody.appendChild(tr);
     });
+}
+
+// 行ごとの売上更新
+function updateRowTotal(idx) {
+    const tbody = $('itemsTable').querySelector('tbody');
+    if (tbody.rows[idx]) {
+        tbody.rows[idx].cells[3].textContent = items[idx].price * items[idx].count;
+    }
 }
 
 // バック率判定
@@ -100,15 +109,12 @@ function calculate() {
     summaryWrap.appendChild(createPill('合計（概算）', totalPayment.toLocaleString() + ' 円'));
 
     // 売上更新
-    const tbody = $('itemsTable').querySelector('tbody');
-    items.forEach((item, idx) => {
-        tbody.rows[idx].cells[3].textContent = item.price * item.count;
-    });
+    items.forEach((_, idx) => updateRowTotal(idx));
 }
 
 // 行操作
 function addItem() {
-    items.push({ name: '新規項目', price: 0, count: 0 });
+    items.push({ name: '', price: 0, count: 0 }); // 名前も自由入力
     renderItems();
 }
 function resetItems() {
