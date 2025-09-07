@@ -20,8 +20,14 @@ document.addEventListener('DOMContentLoaded', () => {
     $('addItem').addEventListener('click', addItem);
     $('resetItems').addEventListener('click', resetItems);
     $('calc').addEventListener('click', calculate);
-    $('save').addEventListener('click', () => { const rec = calculate(); saveHistory(rec); alert('履歴に保存しました。'); });
-    $('clearStore').addEventListener('click', () => { if (confirm('履歴をクリアしますか？')) clearHistory(); });
+    $('save').addEventListener('click', () => {
+        const rec = calculate();
+        saveHistory(rec);
+        alert('履歴に保存しました。');
+    });
+    $('clearStore').addEventListener('click', () => {
+        if (confirm('履歴をクリアしますか？')) clearHistory();
+    });
 
     resetItems();
     renderHistory();
@@ -32,11 +38,11 @@ function renderItems() {
     items.forEach((it, idx) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="text" value="${escapeHtml(it.name)}" data-idx="${idx}" data-key="name"></td>
-            <td><input type="number" value="${it.price}" min="0" data-idx="${idx}" data-key="price"></td>
-            <td><input type="number" value="${it.count}" min="0" step="1" data-idx="${idx}" data-key="count"></td>
-            <td class="muted" data-idx-out="${idx}">0</td>
-            <td class="item-actions"><button data-action="del" data-idx="${idx}" class="ghost">削除</button></td>
+          <td><input type="text" value="${escapeHtml(it.name)}" data-idx="${idx}" data-key="name"></td>
+          <td><input type="number" value="${it.price}" min="0" data-idx="${idx}" data-key="price"></td>
+          <td><input type="number" value="${it.count}" min="0" step="1" data-idx="${idx}" data-key="count"></td>
+          <td class="muted" data-idx-out="${idx}">0</td>
+          <td class="item-actions"><button data-action="del" data-idx="${idx}" class="ghost">削除</button></td>
         `;
         tbody.appendChild(tr);
     });
@@ -102,13 +108,16 @@ function calculate() {
 
     const total = Math.round(basePay + backTotal);
 
+    const recoveryRate = basePay > 0 ? (backTotal / basePay * 100) : 0;
+
     summary.innerHTML = '';
     summary.appendChild(makePill('時給ベース', basePay));
     summary.appendChild(makePill('バック合計', Math.round(backTotal)));
     summary.appendChild(makePill('適用バック率', appliedRate + '%'));
+    summary.appendChild(makePill('回収率', recoveryRate.toFixed(1) + '%'));
     summary.appendChild(makePill('合計（概算）', total, true));
 
-    return { basePay, backTotal, total, appliedRate, items };
+    return { basePay, backTotal, total, appliedRate, recoveryRate, items };
 }
 
 function makePill(label, amount, big = false) {
@@ -149,7 +158,7 @@ function renderHistory() {
     h.forEach(rec => {
         const d = document.createElement('div');
         const date = rec.at ? new Date(rec.at).toLocaleString() : '';
-        d.innerHTML = `<strong>${date}</strong> — 合計 ${rec.total ? rec.total.toLocaleString() : '-'} 円 (時給ベース ${rec.basePay ? rec.basePay.toLocaleString() : '-'} 円, バック率 ${rec.appliedRate || '-'}%)`;
+        d.innerHTML = `<strong>${date}</strong> — 合計 ${rec.total ? rec.total.toLocaleString() : '-'} 円 (時給ベース ${rec.basePay ? rec.basePay.toLocaleString() : '-'} 円, バック率 ${rec.appliedRate || '-'}%, 回収率 ${rec.recoveryRate ? rec.recoveryRate.toFixed(1) : '-'}%)`;
         historyList.appendChild(d);
     });
 }
