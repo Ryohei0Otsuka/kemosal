@@ -32,12 +32,12 @@ function renderItems() {
     items.forEach((it, idx) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-            <td><input type="text" value="${escapeHtml(it.name)}" data-idx="${idx}" data-key="name"></td>
-            <td><input type="number" value="${it.price}" min="0" data-idx="${idx}" data-key="price"></td>
-            <td><input type="number" value="${it.count}" min="0" step="1" data-idx="${idx}" data-key="count"></td>
-            <td class="muted" data-idx-out="${idx}">0</td>
-            <td class="item-actions"><button data-action="del" data-idx="${idx}" class="ghost">削除</button></td>
-        `;
+      <td><input type="text" value="${escapeHtml(it.name)}" data-idx="${idx}" data-key="name"></td>
+      <td><input type="number" value="${it.price}" min="0" data-idx="${idx}" data-key="price"></td>
+      <td><input type="number" value="${it.count}" min="0" step="1" data-idx="${idx}" data-key="count"></td>
+      <td class="muted" data-idx-out="${idx}">0</td>
+      <td class="item-actions"><button data-action="del" data-idx="${idx}" class="ghost">削除</button></td>
+    `;
         tbody.appendChild(tr);
     });
 
@@ -88,68 +88,65 @@ function calculate() {
     const hours = Number($('hours').value) || 0;
     const basePay = wage * hours;
 
+    // バック売上合計（回収率用）
     const rawTotal = items.reduce((s, it) => s + it.price * it.count, 0);
-    const appliedRate = getBackRate(((basePay + rawTotal) / basePay) * 100);
+
+    // 回収率 = バック売上 ÷ 時給ベース × 100
+    const recoveryRate = basePay > 0 ? (rawTotal / basePay) * 100 : 0;
+
+    // 適用バック率 = 回収率に基づく
+    const appliedRate = getBackRate(recoveryRate);
 
     let backTotal = 0;
     items.forEach((it, idx) => {
         const back = it.price * it.count * (appliedRate / 100);
         backTotal += back;
+
         const tdBack = tbody.querySelector(`td[data-idx-out="${idx}"]`);
         if (tdBack) tdBack.textContent = Math.round(back).toLocaleString() + ' 円';
     });
 
     const total = Math.round(basePay + backTotal);
-    const recoveryRate = basePay > 0 ? Math.round((backTotal / basePay) * 100) : 0;
 
-    // --- 結果表示 ---
     summary.innerHTML = '';
     summary.appendChild(makePill('時給ベース', basePay));
     summary.appendChild(makePill('バック合計', Math.round(backTotal)));
+    summary.appendChild(makePill('回収率（総時給に対する売上）', Math.round(recoveryRate) + '%'));
     summary.appendChild(makePill('適用バック率', appliedRate + '%'));
-    summary.appendChild(makePill('回収率', recoveryRate + '%')); // ←追加
     summary.appendChild(makePill('合計（概算）', total, true));
 
     return { basePay, backTotal, total, appliedRate, recoveryRate, items };
 }
 
-function makePill(label, amount, big = false) {
-    const el = document.createElement('div');
-    el.className = 'pill';
-    const content = (typeof amount === 'number') ? (amount.toLocaleString() + ' 円') : amount;
-    el.innerHTML = `<div class="small">${label}</div><div class="${big ? 'big' : ''}">${content}</div>`;
-    return el;
+function makePill(label, val, highlight = false) {
+    const div = document.createElement('div');
+    div.className = 'pill';
+    if (highlight) div.style.background = 'linear-gradient(180deg,#d9f7e0,#ffffff)';
+    div.innerHTML = `<div class="big">${val.toLocaleString ? val.toLocaleString() : val}</div><div class="small">${label}</div>`;
+    return div;
 }
 
-const STORAGE_KEY = 'kemosal_history_v2';
-
-function saveHistory(record) {
-    if (!record) return;
-    const hist = loadHistory();
-    hist.unshift({ ...record, at: new Date().toISOString() });
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(hist.slice(0, 30)));
+// 履歴機能
+function saveHistory(rec) {
+    const data = JSON.parse(localStorage.getItem('history') || '[]');
+    data.unshift({ date: Date.now(), rec });
+    localStorage.setItem('history', JSON.stringify(data));
     renderHistory();
 }
 
-function loadHistory() {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-}
-
 function renderHistory() {
-    const hist = loadHistory();
-    if (!hist.length) return historyList.textContent = '保存された履歴はまだありません。';
-
+    const data = JSON.parse(localStorage.getItem('history') || '[]');
+    if (!data.length) { historyList.textContent = '保存された履歴はまだありません。'; return; }
     historyList.innerHTML = '';
-    hist.forEach(r => {
+    data.forEach(d => {
         const div = document.createElement('div');
-        div.className = 'pill';
-        div.innerHTML = `<div class="small">${new Date(r.at).toLocaleString()}</div>
-                         <div class="big">合計 ${r.total.toLocaleString()} 円 (時給ベース ${r.basePay.toLocaleString()} 円, バック率 ${r.appliedRate}%, 回収率 ${r.recoveryRate}%)</div>`;
+        const dt = new Date(d.date).toLocaleString();
+        div.textContent = `${dt} — 合計: ${d.rec.total.toLocaleString()}円`;
         historyList.appendChild(div);
     });
 }
 
 function clearHistory() {
-    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem('history');
     renderHistory();
 }
