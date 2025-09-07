@@ -1,6 +1,5 @@
 'use strict';
 
-// 初期データ
 const defaultItems = [
     { name: 'ドリンク', price: 1200, count: 0 },
     { name: 'チェキ', price: 1500, count: 0 },
@@ -36,7 +35,6 @@ function renderItems() {
       <td><input type="text" value="${escapeHtml(it.name)}" data-idx="${idx}" data-key="name"></td>
       <td><input type="number" value="${it.price}" min="0" data-idx="${idx}" data-key="price"></td>
       <td><input type="number" value="${it.count}" min="0" step="1" data-idx="${idx}" data-key="count"></td>
-      <td class="muted" data-idx-rate="${idx}">0%</td>
       <td class="muted" data-idx-out="${idx}">0</td>
       <td class="item-actions"><button data-action="del" data-idx="${idx}" class="ghost">削除</button></td>
     `;
@@ -101,9 +99,6 @@ function calculate() {
 
         const tdBack = tbody.querySelector(`td[data-idx-out="${idx}"]`);
         if (tdBack) tdBack.textContent = Math.round(back).toLocaleString() + ' 円';
-
-        const tdRate = tbody.querySelector(`td[data-idx-rate="${idx}"]`);
-        if (tdRate) tdRate.textContent = appliedRate + '%';
     });
 
     const total = Math.round(basePay + backTotal);

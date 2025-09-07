@@ -1,37 +1,26 @@
 /* Cute + soft blue / light gray theme for kemosal */
 :root {
     --bg: #f5fbfd;
-    /* 背景（薄い水色寄り） */
     --card: #ffffff;
-    /* カード背景 */
     --accent: #6ec1f5;
-    /* メイン水色 */
     --accent-2: #a0dfff;
-    /* グラデ用明るめ水色 */
     --muted: #7a7a7a;
-    /* 補助テキスト色 */
     --soft-gray: #f0f5f8;
-    /* 薄グレー（境界） */
     --pill-bg: linear-gradient(180deg, #e0f7ff, #ffffff);
     --shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
     --glass: rgba(255, 255, 255, 0.6);
-    --radius-lg: 18px;
-    --radius-md: 12px;
-}
-
-* {
-    box-sizing: border-box;
+    --radius-lg: 24px;
+    /* 丸み強め */
+    --radius-md: 16px;
 }
 
 body {
-    font-family: 'Noto Sans JP', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+    font-family: 'Noto Sans JP', 'Comic Neue', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
     margin: 0;
     color: #111;
     background:
         radial-gradient(circle at 10% 10%, rgba(160, 223, 255, 0.08), transparent 12%),
         linear-gradient(180deg, var(--bg), #f8fbff 65%);
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
 }
 
 .wrap {
@@ -51,15 +40,15 @@ header {
 header .logo {
     background: linear-gradient(180deg, var(--accent), var(--accent-2));
     color: #fff;
-    padding: 10px 14px;
-    border-radius: 14px;
+    padding: 12px 18px;
+    border-radius: 20px;
     font-weight: 700;
     box-shadow: 0 6px 18px rgba(110, 193, 245, 0.18);
-    letter-spacing: 0.8px;
+    letter-spacing: 1px;
 }
 
 h1 {
-    font-size: 22px;
+    font-size: 24px;
     margin: 0;
 }
 
@@ -72,9 +61,14 @@ h1 {
 .card {
     background: var(--card);
     border-radius: var(--radius-lg);
-    padding: 20px;
+    padding: 24px;
     box-shadow: var(--shadow);
     border: 1px solid var(--soft-gray);
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
 }
 
 /* form labels & grid */
@@ -121,15 +115,16 @@ select:focus {
 .controls {
     display: flex;
     gap: 12px;
-    margin-top: 14px;
+    margin-top: 16px;
     flex-wrap: wrap;
 }
 
 button {
     background: linear-gradient(90deg, var(--accent), var(--accent-2));
     color: white;
-    padding: 12px 16px;
-    border-radius: 14px;
+    padding: 12px 18px;
+    border-radius: 20px;
+    /* 角丸大きめ */
     border: 0;
     cursor: pointer;
     box-shadow: 0 8px 20px rgba(110, 193, 245, 0.14);
@@ -142,10 +137,6 @@ button:hover {
     box-shadow: 0 12px 26px rgba(110, 193, 245, 0.2);
 }
 
-button:active {
-    transform: translateY(-1px);
-}
-
 button.ghost {
     background: linear-gradient(180deg, #fdfcff, #e0f7ff);
     color: var(--accent);
@@ -153,18 +144,13 @@ button.ghost {
     box-shadow: none;
 }
 
-button.ghost:hover {
-    box-shadow: 0 8px 18px rgba(110, 193, 245, 0.08);
-    transform: translateY(-2px);
-}
-
 /* table */
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 14px;
+    margin-top: 16px;
     background: transparent;
-    border-radius: 12px;
+    border-radius: 16px;
     overflow: hidden;
 }
 
@@ -183,7 +169,7 @@ th {
 }
 
 tbody tr:hover td {
-    background: rgba(110, 193, 245, 0.08);
+    background: rgba(110, 193, 245, 0.1);
     border-radius: 12px;
 }
 
@@ -192,16 +178,16 @@ tbody tr:hover td {
     display: flex;
     flex-wrap: wrap;
     gap: 14px;
-    margin-top: 16px;
+    margin-top: 18px;
 }
 
 .pill {
     background: var(--pill-bg);
-    padding: 14px;
-    border-radius: 16px;
+    padding: 16px;
+    border-radius: 20px;
     min-width: 160px;
     border: 1px solid rgba(110, 193, 245, 0.08);
-    box-shadow: 0 6px 16px rgba(110, 193, 245, 0.06);
+    box-shadow: 0 6px 18px rgba(110, 193, 245, 0.06);
     text-align: center;
 }
 
@@ -221,48 +207,4 @@ tbody tr:hover td {
     margin-top: 18px;
     font-size: 13px;
     color: var(--muted);
-}
-
-/* item actions */
-.actions {
-    display: flex;
-    gap: 8px;
-}
-
-.item-actions {
-    display: flex;
-    gap: 6px;
-}
-
-.item-actions .ghost {
-    padding: 6px 10px;
-    font-size: 13px;
-    border-radius: 12px;
-}
-
-/* small UI niceties */
-.table-input {
-    max-width: 140px;
-}
-
-.icon-dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 999px;
-    background: var(--accent);
-    display: inline-block;
-    margin-right: 8px;
-    box-shadow: 0 3px 8px rgba(110, 193, 245, 0.14);
-}
-
-/* responsive tweaks */
-@media (max-width:520px) {
-    .pill {
-        min-width: 140px;
-        padding: 12px;
-    }
-
-    button {
-        padding: 10px 14px;
-    }
 }
