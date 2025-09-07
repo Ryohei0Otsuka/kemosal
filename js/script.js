@@ -9,133 +9,102 @@ const defaultItems = [
 
 const $ = id => document.getElementById(id);
 
-let items = [];
-let tbody, summary, historyList;
-
-document.addEventListener('DOMContentLoaded', () => {
-    tbody = document.querySelector('#itemsTable tbody');
-    summary = $('summary');
-    historyList = $('historyList');
-
-    $('addItem').addEventListener('click', addItem);
-    $('resetItems').addEventListener('click', resetItems);
-    $('calc').addEventListener('click', calculate);
-    $('save').addEventListener('click', () => { const rec = calculate(); saveHistory(rec); alert('履歴に保存しました。'); });
-    $('clearStore').addEventListener('click', () => { if (confirm('履歴をクリアしますか？')) clearHistory(); });
-
-    resetItems();
-    renderHistory();
-});
+let items = [], summaryWrap = $('summary');
 
 function renderItems() {
+    const tbody = $('itemsTable').querySelector('tbody');
     tbody.innerHTML = '';
-    items.forEach((it, idx) => {
+    items.forEach((item, idx) => {
         const tr = document.createElement('tr');
-        tr.innerHTML = `
-      <td><input type="text" value="${escapeHtml(it.name)}" data-idx="${idx}" data-key="name"></td>
-      <td><input type="number" value="${it.price}" min="0" data-idx="${idx}" data-key="price"></td>
-      <td><input type="number" value="${it.count}" min="0" step="1" data-idx="${idx}" data-key="count"></td>
-      <td class="muted" data-idx-out="${idx}">0</td>
-      <td class="item-actions"><button data-action="del" data-idx="${idx}" class="ghost">削除</button></td>
-    `;
+
+        const tdName = document.createElement('td');
+        tdName.textContent = item.name;
+        tdName.setAttribute('data-label', '名前');
+
+        const tdPrice = document.createElement('td');
+        tdPrice.textContent = item.price;
+        tdPrice.setAttribute('data-label', '単価');
+
+        const tdCount = document.createElement('td');
+        tdCount.innerHTML = `<input type="number" value="${item.count}" min="0" style="width:60px">`;
+        tdCount.setAttribute('data-label', '個数');
+        tdCount.querySelector('input').addEventListener('input', e => { items[idx].count = +e.target.value; });
+
+        const tdBack = document.createElement('td');
+        tdBack.textContent = item.price * item.count;
+        tdBack.setAttribute('data-label', 'バック額');
+
+        const tdDel = document.createElement('td');
+        tdDel.innerHTML = '<button class="ghost">削除</button>';
+        tdDel.setAttribute('data-label', '');
+        tdDel.querySelector('button').addEventListener('click', () => { items.splice(idx, 1); renderItems(); });
+
+        tr.append(tdName, tdPrice, tdCount, tdBack, tdDel);
         tbody.appendChild(tr);
     });
-
-    tbody.querySelectorAll('input').forEach(inp => inp.addEventListener('input', onItemInput));
-    tbody.querySelectorAll('button[data-action="del"]').forEach(btn => {
-        btn.addEventListener('click', e => {
-            const i = Number(e.target.dataset.idx);
-            items.splice(i, 1);
-            renderItems();
-        });
-    });
 }
 
-function onItemInput(e) {
-    const idx = Number(e.target.dataset.idx);
-    const key = e.target.dataset.key;
-    const val = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
-    if (typeof items[idx] !== 'undefined') items[idx][key] = val;
-}
+function calculate() {
+    const wage = +$('wage').value, hours = +$('hours').value;
+    const totalBase = wage * hours;
+    let totalBack = items.reduce((a, i) => a + i.price * i.count, 0);
+    let totalSales = totalBase + totalBack;
 
-function escapeHtml(s) {
-    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
-    return String(s).replace(/[&<>"']/g, c => map[c]);
+    let backRate = totalBack / totalSales;
+    let recoveryRate = totalSales / totalBase;
+
+    summaryWrap.innerHTML = '';
+    const createPill = (label, big) => {
+        const div = document.createElement('div');
+        div.className = 'pill';
+        div.innerHTML = `<div class="big">${big}</div><div class="small">${label}</div>`;
+        return div;
+    }
+
+    summaryWrap.appendChild(createPill('時給ベース', totalBase.toLocaleString() + ' 円'));
+    summaryWrap.appendChild(createPill('バック合計', totalBack.toLocaleString() + ' 円'));
+    summaryWrap.appendChild(createPill('バック率', (backRate * 100).toFixed(1) + ' %'));
+    summaryWrap.appendChild(createPill('回収率', recoveryRate.toFixed(2) + ' 倍'));
+    summaryWrap.appendChild(createPill('合計（概算）', totalSales.toLocaleString() + ' 円'));
 }
 
 function addItem() {
-    items.push({ name: '項目', price: 1000, count: 0 });
+    items.push({ name: '新規項目', price: 0, count: 0 });
     renderItems();
 }
 
 function resetItems() {
-    items = JSON.parse(JSON.stringify(defaultItems));
+    items = [...defaultItems];
     renderItems();
 }
 
-function getBackRate(ratio) {
-    if (ratio <= 100) return 10;
-    if (ratio <= 150) return 15;
-    if (ratio <= 250) return 20;
-    if (ratio <= 400) return 30;
-    if (ratio <= 1000) return 35;
-    if (ratio <= 2000) return 50;
-    return 60;
-}
-
-function calculate() {
-    const wage = Number($('wage').value) || 0;
-    const hours = Number($('hours').value) || 0;
-    const basePay = wage * hours;
-
-    const totalSales = items.reduce((s, it) => s + it.price * it.count, 0);
-    const salesRate = basePay ? Math.round((totalSales / basePay) * 100) : 0;
-    const appliedRate = getBackRate(salesRate);
-
-    let backTotal = 0;
-    items.forEach((it, idx) => {
-        const back = it.price * it.count * (appliedRate / 100);
-        backTotal += back;
-        const tdBack = tbody.querySelector(`td[data-idx-out="${idx}"]`);
-        if (tdBack) tdBack.textContent = Math.round(back).toLocaleString() + ' 円';
-    });
-
-    const total = Math.round(basePay + backTotal);
-
-    summary.innerHTML = '';
-    summary.appendChild(makePill('時給ベース', basePay));
-    summary.appendChild(makePill('バック合計', Math.round(backTotal)));
-    summary.appendChild(makePill('適用バック率', appliedRate + '%'));
-    summary.appendChild(makePill('回収率', salesRate + '%'));
-    summary.appendChild(makePill('合計（概算）', total, true));
-
-    return { basePay, backTotal, total, appliedRate, salesRate, items };
-}
-
-function makePill(label, amount, big = false) {
-    const el = document.createElement('div');
-    el.className = 'pill';
-    const content = (typeof amount === 'number') ? (amount.toLocaleString() + ' 円') : amount;
-    el.innerHTML = `<div class="small">${label}</div><div class="${big ? 'big' : ''}">${content}</div>`;
-    return el;
-}
-
-function saveHistory(rec) {
-    const h = JSON.parse(localStorage.getItem('kemosalHistory') || '[]');
-    h.push({ date: new Date().toLocaleString(), ...rec });
-    localStorage.setItem('kemosalHistory', JSON.stringify(h));
+function saveHistory() {
+    const data = { wage: $('wage').value, hours: $('hours').value, items: JSON.parse(JSON.stringify(items)) };
+    let history = JSON.parse(localStorage.getItem('kemosalHistory') || '[]');
+    history.unshift(data); localStorage.setItem('kemosalHistory', JSON.stringify(history));
     renderHistory();
 }
 
 function renderHistory() {
-    const h = JSON.parse(localStorage.getItem('kemosalHistory') || '[]');
-    if (!h.length) { historyList.textContent = '保存された履歴はまだありません。'; return; }
-    historyList.innerHTML = h.map(r => {
-        return `<div class="pill"><div class="small">${r.date}</div><div class="big">${r.total.toLocaleString()} 円</div></div>`;
-    }).join('');
+    const list = $('historyList'); list.innerHTML = '';
+    let history = JSON.parse(localStorage.getItem('kemosalHistory') || '[]');
+    if (history.length === 0) { list.textContent = '保存された履歴はまだありません。'; return; }
+    history.forEach((h, idx) => {
+        const div = document.createElement('div');
+        div.className = 'pill';
+        div.textContent = `${idx + 1}. 時給:${h.wage}, 労働時間:${h.hours}, バック項目:${h.items.map(i => i.name + 'x' + i.count).join(',')}`;
+        list.appendChild(div);
+    });
 }
 
-function clearHistory() {
-    localStorage.removeItem('kemosalHistory');
+function clearHistory() { localStorage.removeItem('kemosalHistory'); renderHistory(); }
+
+window.addEventListener('load', () => {
+    resetItems();
+    $('calc').addEventListener('click', calculate);
+    $('addItem').addEventListener('click', addItem);
+    $('resetItems').addEventListener('click', resetItems);
+    $('save').addEventListener('click', saveHistory);
+    $('clearStore').addEventListener('click', clearHistory);
     renderHistory();
-}
+});

@@ -1,13 +1,11 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>kemosal — 給与計算</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
     <div class="wrap">
         <header>
@@ -18,7 +16,6 @@
             </div>
         </header>
 
-        <!-- 入力エリア -->
         <section class="card">
             <div class="grid">
                 <div>
@@ -33,7 +30,6 @@
 
             <hr>
 
-            <!-- バック項目 -->
             <div style="display:flex;justify-content:space-between;align-items:center">
                 <div>
                     <label>バック項目（単価 / 個数）</label>
@@ -66,12 +62,9 @@
 
             <div class="summary" id="summary"></div>
 
-            <div class="footer">
-                表示は概算です。
-            </div>
+            <div class="footer">表示は概算です。</div>
         </section>
 
-        <!-- 履歴 -->
         <section id="historyWrap" class="card">
             <h3>履歴</h3>
             <div id="historyList" class="muted">保存された履歴はまだありません。</div>
@@ -80,5 +73,4 @@
 
     <script src="js/script.js"></script>
 </body>
-
 </html>

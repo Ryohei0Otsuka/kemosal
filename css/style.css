@@ -78,7 +78,7 @@ input[type="text"] {
     padding: 12px 14px;
     border-radius: var(--radius-md);
     border: 1px solid #e1f1f9;
-    background: linear-gradient(180deg, #ffffff, #f6fcff);
+    background: linear-gradient(180deg, #fff, #f6fcff);
     font-size: 14px;
     transition: box-shadow .2s, transform .1s;
 }
@@ -141,12 +141,10 @@ button.ghost:hover {
     transform: translateY(-2px);
 }
 
-/* --- テーブルスタイル --- */
 table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 14px;
-    background: transparent;
 }
 
 th,
@@ -164,10 +162,61 @@ th {
 
 tbody tr:hover td {
     background: rgba(110, 193, 245, 0.08);
-    border-radius: 6px;
+    border-radius: 12px;
 }
 
-@media (max-width: 520px) {
+.summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    margin-top: 16px;
+}
+
+.pill {
+    background: var(--pill-bg);
+    padding: 14px;
+    border-radius: 16px;
+    min-width: 140px;
+    border: 1px solid rgba(110, 193, 245, 0.08);
+    box-shadow: 0 6px 16px rgba(110, 193, 245, 0.06);
+    text-align: center;
+}
+
+.pill .big {
+    font-weight: 700;
+    font-size: 18px;
+    color: #044b63;
+}
+
+.pill .small {
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.footer {
+    margin-top: 18px;
+    font-size: 13px;
+    color: var(--muted);
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+}
+
+.item-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.item-actions .ghost {
+    padding: 6px 10px;
+    font-size: 13px;
+    border-radius: 12px;
+}
+
+/* スマホでカード風に */
+@media (max-width:480px) {
 
     table,
     thead,
@@ -194,47 +243,19 @@ tbody tr:hover td {
     tbody td {
         border: none;
         padding: 6px 0;
+        display: flex;
+        justify-content: space-between;
     }
 
     tbody td:before {
         content: attr(data-label);
-        float: left;
         font-weight: 600;
         color: var(--muted);
+        flex-basis: 40%;
     }
-}
 
-/* --- Summary --- */
-.summary {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 12px;
-    margin-top: 16px;
-}
-
-.pill {
-    background: var(--pill-bg);
-    padding: 14px;
-    border-radius: 16px;
-    border: 1px solid rgba(110, 193, 245, 0.08);
-    box-shadow: 0 6px 16px rgba(110, 193, 245, 0.06);
-    text-align: center;
-    word-break: break-word;
-}
-
-.pill .big {
-    font-weight: 700;
-    font-size: 18px;
-    color: #044b63;
-}
-
-.pill .small {
-    font-size: 13px;
-    color: var(--muted);
-}
-
-.footer {
-    margin-top: 18px;
-    font-size: 13px;
-    color: var(--muted);
+    tbody td:last-child {
+        display: flex;
+        justify-content: flex-end;
+    }
 }
