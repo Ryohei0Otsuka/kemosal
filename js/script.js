@@ -11,10 +11,11 @@ const defaultItems = [
     { name: "フード", price: 2200, count: 0 },
 ];
 
-// テーブル描画
+// テーブル描画（初回・行追加・リセット時のみ）
 function renderItems() {
     const tbody = $("itemsTable").querySelector("tbody");
     tbody.innerHTML = "";
+
     items.forEach((item, idx) => {
         const tr = document.createElement("tr");
 
@@ -22,8 +23,8 @@ function renderItems() {
         const tdName = document.createElement("td");
         const inputName = document.createElement("input");
         inputName.type = "text";
-        inputName.value = item.name;
         inputName.placeholder = "項目名";
+        inputName.value = item.name;
         inputName.addEventListener("input", (e) => {
             items[idx].name = e.target.value;
         });
@@ -64,21 +65,24 @@ function renderItems() {
         btnDel.textContent = "削除";
         btnDel.addEventListener("click", () => {
             items.splice(idx, 1);
-            renderItems();
+            tbody.removeChild(tr); // 行削除
+            calculate(); // 合計更新
         });
         tdDel.appendChild(btnDel);
 
         tr.append(tdName, tdPrice, tdCount, tdTotal, tdDel);
         tbody.appendChild(tr);
     });
+
+    calculate(); // 初回描画時も合計計算
 }
 
-// 行ごとの売上更新
+// 行売上更新（リアルタイム）
 function updateRowTotal(idx) {
     const tbody = $("itemsTable").querySelector("tbody");
     if (tbody.rows[idx]) {
         tbody.rows[idx].cells[3].textContent = items[idx].price * items[idx].count;
-        calculate(); // 個別に更新したら合計も再計算
+        calculate();
     }
 }
 
@@ -93,7 +97,7 @@ function getBackRate(recoveryPercent) {
     return 0.6;
 }
 
-// 計算
+// 計算（リアルタイム）
 function calculate() {
     const wage = +$("wage").value;
     const hours = +$("hours").value;
@@ -135,9 +139,10 @@ function calculate() {
 
 // 行操作
 function addItem() {
-    items.push({ name: "", price: 0, count: 0 }); // 新規項目は空欄
+    items.push({ name: "", price: 0, count: 0 });
     renderItems();
 }
+
 function resetItems() {
     items = JSON.parse(JSON.stringify(defaultItems));
     renderItems();
@@ -188,5 +193,4 @@ window.addEventListener("load", () => {
     $("clearStore").addEventListener("click", clearHistory);
     $("wage").addEventListener("input", calculate);
     $("hours").addEventListener("input", calculate);
-    renderHistory();
 });
