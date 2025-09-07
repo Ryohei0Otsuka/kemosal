@@ -88,13 +88,14 @@ function calculate() {
     const hours = Number($('hours').value) || 0;
     const basePay = wage * hours;
 
-    // バック売上合計（回収率用）
+    // 売上合計
     const rawTotal = items.reduce((s, it) => s + it.price * it.count, 0);
+    const totalSales = basePay + rawTotal;
 
-    // 回収率 = バック売上 ÷ 時給ベース × 100
-    const recoveryRate = basePay > 0 ? (rawTotal / basePay) * 100 : 0;
+    // 回収率 = 総売上 ÷ 時給ベース × 100
+    const recoveryRate = basePay ? (totalSales / basePay) * 100 : 0;
 
-    // 適用バック率 = 回収率に基づく
+    // バック率は回収率に基づく
     const appliedRate = getBackRate(recoveryRate);
 
     let backTotal = 0;
@@ -111,42 +112,57 @@ function calculate() {
     summary.innerHTML = '';
     summary.appendChild(makePill('時給ベース', basePay));
     summary.appendChild(makePill('バック合計', Math.round(backTotal)));
-    summary.appendChild(makePill('回収率（総時給に対する売上）', Math.round(recoveryRate) + '%'));
     summary.appendChild(makePill('適用バック率', appliedRate + '%'));
+    summary.appendChild(makePill('回収率', recoveryRate.toFixed(1) + '%'));
     summary.appendChild(makePill('合計（概算）', total, true));
 
     return { basePay, backTotal, total, appliedRate, recoveryRate, items };
 }
 
-function makePill(label, val, highlight = false) {
-    const div = document.createElement('div');
-    div.className = 'pill';
-    if (highlight) div.style.background = 'linear-gradient(180deg,#d9f7e0,#ffffff)';
-    div.innerHTML = `<div class="big">${val.toLocaleString ? val.toLocaleString() : val}</div><div class="small">${label}</div>`;
-    return div;
+function makePill(label, amount, big = false) {
+    const el = document.createElement('div');
+    el.className = 'pill';
+    const content = (typeof amount === 'number') ? (amount.toLocaleString() + ' 円') : amount;
+    el.innerHTML = `<div class="small">${label}</div><div class="${big ? 'big' : ''}">${content}</div>`;
+    return el;
 }
 
-// 履歴機能
-function saveHistory(rec) {
-    const data = JSON.parse(localStorage.getItem('history') || '[]');
-    data.unshift({ date: Date.now(), rec });
-    localStorage.setItem('history', JSON.stringify(data));
+const STORAGE_KEY = 'kemosal_history_v1';
+
+function saveHistory(record) {
+    if (!record) return;
+    const hist = loadHistory();
+    hist.unshift({ ...record, at: new Date().toISOString() });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(hist.slice(0, 30)));
     renderHistory();
 }
 
+function loadHistory() {
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        return raw ? JSON.parse(raw) : [];
+    } catch (e) {
+        return [];
+    }
+}
+
 function renderHistory() {
-    const data = JSON.parse(localStorage.getItem('history') || '[]');
-    if (!data.length) { historyList.textContent = '保存された履歴はまだありません。'; return; }
+    const h = loadHistory();
+    if (!historyList) return;
+    if (!h || h.length === 0) {
+        historyList.textContent = '保存された履歴はまだありません。';
+        return;
+    }
     historyList.innerHTML = '';
-    data.forEach(d => {
-        const div = document.createElement('div');
-        const dt = new Date(d.date).toLocaleString();
-        div.textContent = `${dt} — 合計: ${d.rec.total.toLocaleString()}円`;
-        historyList.appendChild(div);
+    h.forEach(rec => {
+        const d = document.createElement('div');
+        const date = rec.at ? new Date(rec.at).toLocaleString() : '';
+        d.innerHTML = `<strong>${date}</strong> — 合計 ${rec.total ? rec.total.toLocaleString() : '-'} 円`;
+        historyList.appendChild(d);
     });
 }
 
 function clearHistory() {
-    localStorage.removeItem('history');
+    localStorage.removeItem(STORAGE_KEY);
     renderHistory();
 }
