@@ -16,19 +16,26 @@ function renderItems() {
     items.forEach((item, idx) => {
         const tr = document.createElement('tr');
 
+        // 名前入力
         const tdName = document.createElement('td');
-        tdName.textContent = item.name;
+        tdName.innerHTML = `<input type="text" value="${item.name}">`;
+        tdName.querySelector('input').addEventListener('input', e => { items[idx].name = e.target.value; });
 
+        // 単価入力
         const tdPrice = document.createElement('td');
-        tdPrice.textContent = item.price;
+        tdPrice.innerHTML = `<input type="number" value="${item.price}" min="0">`;
+        tdPrice.querySelector('input').addEventListener('input', e => { items[idx].price = +e.target.value; });
 
+        // 個数入力
         const tdCount = document.createElement('td');
-        tdCount.innerHTML = `<input type="number" value="${item.count}" min="0" style="width:60px">`;
+        tdCount.innerHTML = `<input type="number" value="${item.count}" min="0">`;
         tdCount.querySelector('input').addEventListener('input', e => { items[idx].count = +e.target.value; });
 
+        // 売上表示
         const tdTotal = document.createElement('td');
         tdTotal.textContent = item.price * item.count;
 
+        // 削除ボタン
         const tdDel = document.createElement('td');
         tdDel.innerHTML = '<button class="ghost">削除</button>';
         tdDel.querySelector('button').addEventListener('click', () => { items.splice(idx, 1); renderItems(); });
@@ -72,6 +79,12 @@ function calculate() {
     summaryWrap.appendChild(createPill('適用バック率', (backRate * 100).toFixed(1) + ' %'));
     summaryWrap.appendChild(createPill('バック額', backAmount.toLocaleString() + ' 円'));
     summaryWrap.appendChild(createPill('合計（概算）', totalPayment.toLocaleString() + ' 円'));
+
+    // 売上欄も更新
+    const tbody = $('itemsTable').querySelector('tbody');
+    items.forEach((item, idx) => {
+        tbody.rows[idx].cells[3].textContent = item.price * item.count;
+    });
 }
 
 function addItem() { items.push({ name: '新規項目', price: 0, count: 0 }); renderItems(); }
