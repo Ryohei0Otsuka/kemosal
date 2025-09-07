@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="ja">
+
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
     <title>kemosal — 給与計算</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
+
 <body>
     <div class="wrap">
         <header>
@@ -30,7 +32,7 @@
 
             <hr>
 
-            <div style="display:flex;justify-content:space-between;align-items:center">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap">
                 <div>
                     <label>バック項目（単価 / 個数）</label>
                     <div class="muted">ドリンク・チェキ等。行を追加して使えます。</div>
@@ -41,18 +43,20 @@
                 </div>
             </div>
 
-            <table id="itemsTable" aria-label="バック項目テーブル">
-                <thead>
-                    <tr>
-                        <th>名前</th>
-                        <th>単価 (円)</th>
-                        <th>個数</th>
-                        <th>バック額 (円)</th>
-                        <th></th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
+            <div class="table-wrap">
+                <table id="itemsTable" aria-label="バック項目テーブル">
+                    <thead>
+                        <tr>
+                            <th>名前</th>
+                            <th>単価 (円)</th>
+                            <th>個数</th>
+                            <th>売上 (円)</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
 
             <div class="controls">
                 <button id="calc">計算する</button>
@@ -73,4 +77,5 @@
 
     <script src="js/script.js"></script>
 </body>
+
 </html>

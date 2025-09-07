@@ -19,8 +19,7 @@ body {
     font-family: 'Noto Sans JP', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
     margin: 0;
     color: #111;
-    background:
-        radial-gradient(circle at 10% 10%, rgba(160, 223, 255, 0.08), transparent 12%),
+    background: radial-gradient(circle at 10% 10%, rgba(160, 223, 255, 0.08), transparent 12%),
         linear-gradient(180deg, var(--bg), #f8fbff 65%);
 }
 
@@ -95,7 +94,7 @@ input:focus {
     gap: 14px;
 }
 
-@media (max-width:720px) {
+@media(max-width:720px) {
     .grid {
         grid-template-columns: 1fr;
     }
@@ -141,10 +140,15 @@ button.ghost:hover {
     transform: translateY(-2px);
 }
 
+.table-wrap {
+    overflow-x: auto;
+    margin-top: 12px;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 14px;
+    min-width: 480px;
 }
 
 th,
@@ -202,11 +206,7 @@ tbody tr:hover td {
 .actions {
     display: flex;
     gap: 8px;
-}
-
-.item-actions {
-    display: flex;
-    gap: 6px;
+    flex-wrap: wrap;
 }
 
 .item-actions .ghost {
@@ -215,47 +215,9 @@ tbody tr:hover td {
     border-radius: 12px;
 }
 
-/* スマホでカード風に */
-@media (max-width:480px) {
-
-    table,
-    thead,
-    tbody,
-    th,
-    td,
-    tr {
-        display: block;
-        width: 100%;
-    }
-
-    thead {
-        display: none;
-    }
-
-    tbody tr {
+/* スマホでテーブル横スクロール対応 */
+@media(max-width:480px) {
+    .table-wrap {
         margin-bottom: 12px;
-        border: 1px solid rgba(224, 232, 238, 0.5);
-        border-radius: 12px;
-        padding: 10px;
-        background: #f9faff;
-    }
-
-    tbody td {
-        border: none;
-        padding: 6px 0;
-        display: flex;
-        justify-content: space-between;
-    }
-
-    tbody td:before {
-        content: attr(data-label);
-        font-weight: 600;
-        color: var(--muted);
-        flex-basis: 40%;
-    }
-
-    tbody td:last-child {
-        display: flex;
-        justify-content: flex-end;
     }
 }
