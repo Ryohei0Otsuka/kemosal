@@ -1,3 +1,4 @@
+/* Cute + soft blue / light gray theme */
 :root {
     --bg: #f5fbfd;
     --card: #ffffff;
@@ -25,9 +26,10 @@ body {
 }
 
 .wrap {
-    max-width: 920px;
-    margin: 30px auto;
-    padding: 22px;
+    width: 90%;
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 16px;
 }
 
 header {
@@ -35,6 +37,7 @@ header {
     align-items: center;
     gap: 16px;
     margin-bottom: 20px;
+    flex-wrap: wrap;
 }
 
 header .logo {
@@ -141,10 +144,15 @@ button.ghost:hover {
     transform: translateY(-2px);
 }
 
+.table-wrapper {
+    overflow-x: auto;
+    margin-top: 14px;
+}
+
 table {
     width: 100%;
+    min-width: 500px;
     border-collapse: collapse;
-    margin-top: 14px;
     background: transparent;
     border-radius: 12px;
     overflow: hidden;
@@ -179,7 +187,7 @@ tbody tr:hover td {
     background: var(--pill-bg);
     padding: 14px;
     border-radius: 16px;
-    min-width: 160px;
+    min-width: 140px;
     border: 1px solid rgba(110, 193, 245, 0.08);
     box-shadow: 0 6px 16px rgba(110, 193, 245, 0.06);
     text-align: center;
@@ -200,4 +208,37 @@ tbody tr:hover td {
     margin-top: 18px;
     font-size: 13px;
     color: var(--muted);
+}
+
+.actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.item-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.item-actions .ghost {
+    padding: 6px 10px;
+    font-size: 13px;
+    border-radius: 12px;
+}
+
+@media (max-width:480px) {
+    .pill {
+        min-width: 100%;
+        padding: 12px;
+    }
+
+    button {
+        width: 100%;
+        padding: 10px 14px;
+    }
+
+    .grid {
+        gap: 10px;
+    }
 }

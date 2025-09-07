@@ -1,15 +1,16 @@
 'use strict';
 
-const $ = id => document.getElementById(id);
-let items = [];
-let tbody, summary, historyList;
-
 const defaultItems = [
     { name: 'ドリンク', price: 1200, count: 0 },
     { name: 'チェキ', price: 1500, count: 0 },
     { name: '宿チェキ', price: 2000, count: 0 },
     { name: 'フード', price: 2200, count: 0 }
 ];
+
+const $ = id => document.getElementById(id);
+
+let items = [];
+let tbody, summary, historyList;
 
 document.addEventListener('DOMContentLoaded', () => {
     tbody = document.querySelector('#itemsTable tbody');
@@ -19,8 +20,17 @@ document.addEventListener('DOMContentLoaded', () => {
     $('addItem').addEventListener('click', addItem);
     $('resetItems').addEventListener('click', resetItems);
     $('calc').addEventListener('click', calculate);
+    $('save').addEventListener('click', () => {
+        const rec = calculate();
+        saveHistory(rec);
+        alert('履歴に保存しました。');
+    });
+    $('clearStore').addEventListener('click', () => {
+        if (confirm('履歴をクリアしますか？')) clearHistory();
+    });
 
     resetItems();
+    renderHistory();
 });
 
 function renderItems() {
@@ -28,25 +38,35 @@ function renderItems() {
     items.forEach((it, idx) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-      <td><input type="text" value="${it.name}" data-idx="${idx}" data-key="name"></td>
+      <td><input type="text" value="${escapeHtml(it.name)}" data-idx="${idx}" data-key="name"></td>
       <td><input type="number" value="${it.price}" min="0" data-idx="${idx}" data-key="price"></td>
       <td><input type="number" value="${it.count}" min="0" step="1" data-idx="${idx}" data-key="count"></td>
       <td class="muted" data-idx-out="${idx}">0</td>
-      <td><button data-action="del" data-idx="${idx}" class="ghost">削除</button></td>
+      <td class="item-actions"><button data-action="del" data-idx="${idx}" class="ghost">削除</button></td>
     `;
         tbody.appendChild(tr);
     });
 
     tbody.querySelectorAll('input').forEach(inp => inp.addEventListener('input', onItemInput));
-    tbody.querySelectorAll('button[data-action="del"]').forEach(btn =>
-        btn.addEventListener('click', e => { items.splice(Number(e.target.dataset.idx), 1); renderItems(); })
-    );
+    tbody.querySelectorAll('button[data-action="del"]').forEach(btn => {
+        btn.addEventListener('click', e => {
+            const i = Number(e.target.dataset.idx);
+            items.splice(i, 1);
+            renderItems();
+        });
+    });
 }
 
 function onItemInput(e) {
     const idx = Number(e.target.dataset.idx);
     const key = e.target.dataset.key;
-    items[idx][key] = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
+    const val = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
+    if (typeof items[idx] !== 'undefined') items[idx][key] = val;
+}
+
+function escapeHtml(s) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    return String(s).replace(/[&<>"']/g, c => map[c]);
 }
 
 function addItem() {
@@ -59,13 +79,13 @@ function resetItems() {
     renderItems();
 }
 
-function getBackRate(recoveryRate) {
-    if (recoveryRate <= 100) return 10;
-    if (recoveryRate <= 150) return 15;
-    if (recoveryRate <= 250) return 20;
-    if (recoveryRate <= 400) return 30;
-    if (recoveryRate <= 1000) return 35;
-    if (recoveryRate <= 2000) return 50;
+function getBackRate(ratio) {
+    if (ratio <= 100) return 10;
+    if (ratio <= 150) return 15;
+    if (ratio <= 250) return 20;
+    if (ratio <= 400) return 30;
+    if (ratio <= 1000) return 35;
+    if (ratio <= 2000) return 50;
     return 60;
 }
 
@@ -74,16 +94,15 @@ function calculate() {
     const hours = Number($('hours').value) || 0;
     const basePay = wage * hours;
 
-    const rawTotal = items.reduce((s, it) => s + it.price * it.count, 0);
-    const totalSales = basePay + rawTotal;
-
-    const recoveryRate = basePay ? (totalSales / basePay) * 100 : 0;
+    const totalSales = items.reduce((s, it) => s + it.price * it.count, 0);
+    const recoveryRate = totalSales / basePay * 100; // 総売上に対する回収率
     const appliedRate = getBackRate(recoveryRate);
 
     let backTotal = 0;
     items.forEach((it, idx) => {
         const back = it.price * it.count * (appliedRate / 100);
         backTotal += back;
+
         const tdBack = tbody.querySelector(`td[data-idx-out="${idx}"]`);
         if (tdBack) tdBack.textContent = Math.round(back).toLocaleString() + ' 円';
     });
@@ -94,7 +113,7 @@ function calculate() {
     summary.appendChild(makePill('時給ベース', basePay));
     summary.appendChild(makePill('バック合計', Math.round(backTotal)));
     summary.appendChild(makePill('適用バック率', appliedRate + '%'));
-    summary.appendChild(makePill('回収率（総売上 ÷ 時給ベース）', recoveryRate.toFixed(1) + '%'));
+    summary.appendChild(makePill('回収率（総売上/時給ベース）', recoveryRate.toFixed(1) + '%'));
     summary.appendChild(makePill('合計（概算）', total, true));
 
     return { basePay, backTotal, total, appliedRate, recoveryRate, items };
@@ -103,7 +122,44 @@ function calculate() {
 function makePill(label, amount, big = false) {
     const el = document.createElement('div');
     el.className = 'pill';
-    const content = typeof amount === 'number' ? amount.toLocaleString() + ' 円' : amount;
+    const content = (typeof amount === 'number') ? (amount.toLocaleString() + ' 円') : amount;
     el.innerHTML = `<div class="small">${label}</div><div class="${big ? 'big' : ''}">${content}</div>`;
     return el;
+}
+
+const STORAGE_KEY = 'kemosal_history_v2';
+
+function saveHistory(record) {
+    if (!record) return;
+    const hist = loadHistory();
+    hist.unshift({ ...record, at: new Date().toISOString() });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(hist.slice(0, 20)));
+    renderHistory();
+}
+
+function loadHistory() {
+    const h = localStorage.getItem(STORAGE_KEY);
+    return h ? JSON.parse(h) : [];
+}
+
+function renderHistory() {
+    const hist = loadHistory();
+    if (hist.length === 0) {
+        historyList.textContent = '保存された履歴はまだありません。';
+        return;
+    }
+
+    historyList.innerHTML = '';
+    hist.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'pill';
+        div.innerHTML = `<div class="small">${new Date(r.at).toLocaleString()}</div>
+        <div class="big">${r.total.toLocaleString()} 円</div>`;
+        historyList.appendChild(div);
+    });
+}
+
+function clearHistory() {
+    localStorage.removeItem(STORAGE_KEY);
+    renderHistory();
 }
