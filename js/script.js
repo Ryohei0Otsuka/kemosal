@@ -18,24 +18,17 @@ document.addEventListener('DOMContentLoaded', () => {
     summary = $('summary');
     historyList = $('historyList');
 
-    const addBtn = $('addItem');
-    const resetBtn = $('resetItems');
-    const calcBtn = $('calc');
-    const saveBtn = $('save');
-    const clearBtn = $('clearStore');
-
-    if (addBtn) addBtn.addEventListener('click', addItem);
-    if (resetBtn) resetBtn.addEventListener('click', resetItems);
-    if (calcBtn) calcBtn.addEventListener('click', calculate);
-    if (saveBtn) saveBtn.addEventListener('click', () => { const rec = calculate(); saveHistory(rec); alert('履歴に保存しました。'); });
-    if (clearBtn) clearBtn.addEventListener('click', () => { if (confirm('履歴をクリアしますか？')) clearHistory(); });
+    $('addItem').addEventListener('click', addItem);
+    $('resetItems').addEventListener('click', resetItems);
+    $('calc').addEventListener('click', calculate);
+    $('save').addEventListener('click', () => { const rec = calculate(); saveHistory(rec); alert('履歴に保存しました。'); });
+    $('clearStore').addEventListener('click', () => { if (confirm('履歴をクリアしますか？')) clearHistory(); });
 
     resetItems();
     renderHistory();
 });
 
 function renderItems() {
-    if (!tbody) return;
     tbody.innerHTML = '';
     items.forEach((it, idx) => {
         const tr = document.createElement('tr');
@@ -50,9 +43,7 @@ function renderItems() {
         tbody.appendChild(tr);
     });
 
-    tbody.querySelectorAll('input').forEach(inp => {
-        inp.addEventListener('input', onItemInput);
-    });
+    tbody.querySelectorAll('input').forEach(inp => inp.addEventListener('input', onItemInput));
     tbody.querySelectorAll('button[data-action="del"]').forEach(btn => {
         btn.addEventListener('click', e => {
             const i = Number(e.target.dataset.idx);
@@ -84,7 +75,6 @@ function resetItems() {
     renderItems();
 }
 
-// バック率判定
 function getBackRate(ratio) {
     if (ratio <= 100) return 10;
     if (ratio <= 150) return 15;
