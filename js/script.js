@@ -32,12 +32,12 @@ function renderItems() {
     items.forEach((it, idx) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-        <td><input type="text" value="${escapeHtml(it.name)}" data-idx="${idx}" data-key="name"></td>
-        <td><input type="number" value="${it.price}" min="0" data-idx="${idx}" data-key="price"></td>
-        <td><input type="number" value="${it.count}" min="0" step="1" data-idx="${idx}" data-key="count"></td>
-        <td class="muted" data-idx-out="${idx}">0</td>
-        <td class="item-actions"><button data-action="del" data-idx="${idx}" class="ghost">削除</button></td>
-        `;
+      <td><input type="text" value="${escapeHtml(it.name)}" data-idx="${idx}" data-key="name"></td>
+      <td><input type="number" value="${it.price}" min="0" data-idx="${idx}" data-key="price"></td>
+      <td><input type="number" value="${it.count}" min="0" step="1" data-idx="${idx}" data-key="count"></td>
+      <td class="muted" data-idx-out="${idx}">0</td>
+      <td class="item-actions"><button data-action="del" data-idx="${idx}" class="ghost">削除</button></td>
+    `;
         tbody.appendChild(tr);
     });
 
@@ -58,10 +58,20 @@ function onItemInput(e) {
     if (typeof items[idx] !== 'undefined') items[idx][key] = val;
 }
 
-function escapeHtml(s) { const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }; return String(s).replace(/[&<>"']/g, c => map[c]); }
+function escapeHtml(s) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    return String(s).replace(/[&<>"']/g, c => map[c]);
+}
 
-function addItem() { items.push({ name: '項目', price: 1000, count: 0 }); renderItems(); }
-function resetItems() { items = JSON.parse(JSON.stringify(defaultItems)); renderItems(); }
+function addItem() {
+    items.push({ name: '項目', price: 1000, count: 0 });
+    renderItems();
+}
+
+function resetItems() {
+    items = JSON.parse(JSON.stringify(defaultItems));
+    renderItems();
+}
 
 function getBackRate(ratio) {
     if (ratio <= 100) return 10;
@@ -79,7 +89,8 @@ function calculate() {
     const basePay = wage * hours;
 
     const totalSales = items.reduce((s, it) => s + it.price * it.count, 0);
-    const appliedRate = getBackRate((totalSales / basePay) * 100);
+    const salesRate = basePay ? Math.round((totalSales / basePay) * 100) : 0;
+    const appliedRate = getBackRate(salesRate);
 
     let backTotal = 0;
     items.forEach((it, idx) => {
@@ -90,40 +101,41 @@ function calculate() {
     });
 
     const total = Math.round(basePay + backTotal);
-    const collectionRate = Math.round((totalSales / basePay) * 100);
 
     summary.innerHTML = '';
     summary.appendChild(makePill('時給ベース', basePay));
     summary.appendChild(makePill('バック合計', Math.round(backTotal)));
     summary.appendChild(makePill('適用バック率', appliedRate + '%'));
-    summary.appendChild(makePill('回収率（総売上/時給ベース）', collectionRate + '%'));
+    summary.appendChild(makePill('回収率', salesRate + '%'));
     summary.appendChild(makePill('合計（概算）', total, true));
 
-    return { basePay, backTotal, total, appliedRate, collectionRate, items };
+    return { basePay, backTotal, total, appliedRate, salesRate, items };
 }
 
 function makePill(label, amount, big = false) {
-    const el = document.createElement('div'); el.className = 'pill';
+    const el = document.createElement('div');
+    el.className = 'pill';
     const content = (typeof amount === 'number') ? (amount.toLocaleString() + ' 円') : amount;
     el.innerHTML = `<div class="small">${label}</div><div class="${big ? 'big' : ''}">${content}</div>`;
     return el;
 }
 
-const STORAGE_KEY = 'kemosal_history_v1';
-function saveHistory(record) {
-    const arr = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    arr.unshift(record);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(arr.slice(0, 20)));
+function saveHistory(rec) {
+    const h = JSON.parse(localStorage.getItem('kemosalHistory') || '[]');
+    h.push({ date: new Date().toLocaleString(), ...rec });
+    localStorage.setItem('kemosalHistory', JSON.stringify(h));
     renderHistory();
 }
-function clearHistory() { localStorage.removeItem(STORAGE_KEY); renderHistory(); }
+
 function renderHistory() {
-    const arr = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-    if (arr.length === 0) { historyList.textContent = '保存された履歴はまだありません。'; return; }
-    historyList.innerHTML = '';
-    arr.forEach(r => {
-        const d = document.createElement('div'); d.className = 'pill';
-        d.innerHTML = `<div class="small">合計（概算）</div><div class="big">${r.total.toLocaleString()} 円</div>`;
-        historyList.appendChild(d);
-    });
+    const h = JSON.parse(localStorage.getItem('kemosalHistory') || '[]');
+    if (!h.length) { historyList.textContent = '保存された履歴はまだありません。'; return; }
+    historyList.innerHTML = h.map(r => {
+        return `<div class="pill"><div class="small">${r.date}</div><div class="big">${r.total.toLocaleString()} 円</div></div>`;
+    }).join('');
+}
+
+function clearHistory() {
+    localStorage.removeItem('kemosalHistory');
+    renderHistory();
 }
