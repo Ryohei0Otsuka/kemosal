@@ -1,11 +1,11 @@
 'use strict';
 
-// 初期データ（必ず配列を閉じること）
+// 初期データ
 const defaultItems = [
-    { name: 'ドリンク', price: 1200, count: 0, rate: 100 },
-    { name: 'チェキ', price: 1500, count: 0, rate: 100 },
-    { name: '宿チェキ', price: 2000, count: 0, rate: 100 },
-    { name: 'フード', price: 2200, count: 0, rate: 100 }
+    { name: 'ドリンク', price: 1200, count: 0 },
+    { name: 'チェキ', price: 1500, count: 0 },
+    { name: '宿チェキ', price: 2000, count: 0 },
+    { name: 'フード', price: 2200, count: 0 }
 ];
 
 const $ = id => document.getElementById(id);
@@ -13,7 +13,6 @@ const $ = id => document.getElementById(id);
 let items = [];
 let tbody, summary, historyList;
 
-// DOM が準備できてから初期化
 document.addEventListener('DOMContentLoaded', () => {
     tbody = document.querySelector('#itemsTable tbody');
     summary = $('summary');
@@ -27,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (addBtn) addBtn.addEventListener('click', addItem);
     if (resetBtn) resetBtn.addEventListener('click', resetItems);
-    if (calcBtn) calcBtn.addEventListener('click', () => calculate());
+    if (calcBtn) calcBtn.addEventListener('click', calculate);
     if (saveBtn) saveBtn.addEventListener('click', () => { const rec = calculate(); saveHistory(rec); alert('履歴に保存しました。'); });
     if (clearBtn) clearBtn.addEventListener('click', () => { if (confirm('履歴をクリアしますか？')) clearHistory(); });
 
@@ -44,7 +43,7 @@ function renderItems() {
       <td><input type="text" value="${escapeHtml(it.name)}" data-idx="${idx}" data-key="name"></td>
       <td><input type="number" value="${it.price}" min="0" data-idx="${idx}" data-key="price"></td>
       <td><input type="number" value="${it.count}" min="0" step="1" data-idx="${idx}" data-key="count"></td>
-      <td><input type="number" value="${it.rate}" min="0" max="100" data-idx="${idx}" data-key="rate"></td>
+      <td class="muted" data-idx-rate="${idx}">0%</td>
       <td class="muted" data-idx-out="${idx}">0</td>
       <td class="item-actions"><button data-action="del" data-idx="${idx}" class="ghost">削除</button></td>
     `;
@@ -76,7 +75,7 @@ function escapeHtml(s) {
 }
 
 function addItem() {
-    items.push({ name: '項目', price: 1000, count: 0, rate: 100 });
+    items.push({ name: '項目', price: 1000, count: 0 });
     renderItems();
 }
 
@@ -85,7 +84,7 @@ function resetItems() {
     renderItems();
 }
 
-// バック率判定テーブル
+// バック率判定
 function getBackRate(ratio) {
     if (ratio <= 100) return 10;
     if (ratio <= 150) return 15;
@@ -99,61 +98,33 @@ function getBackRate(ratio) {
 function calculate() {
     const wage = Number($('wage').value) || 0;
     const hours = Number($('hours').value) || 0;
-    const overallRate = Number($('overallRate').value) || 0; // 手入力優先
-
     const basePay = wage * hours;
 
-    let rawBackTotal = 0;
-    const rawPerItem = items.map(it => {
-        const itemBack = (Number(it.price) || 0) * (Number(it.count) || 0) * ((Number(it.rate) || 0) / 100);
-        rawBackTotal += itemBack;
-        return { ...it, backRaw: itemBack };
+    // 売上合計
+    const rawTotal = items.reduce((s, it) => s + it.price * it.count, 0);
+    const appliedRate = getBackRate(((basePay + rawTotal) / basePay) * 100);
+
+    let backTotal = 0;
+    items.forEach((it, idx) => {
+        const back = it.price * it.count * (appliedRate / 100);
+        backTotal += back;
+
+        const tdBack = tbody.querySelector(`td[data-idx-out="${idx}"]`);
+        if (tdBack) tdBack.textContent = Math.round(back).toLocaleString() + ' 円';
+
+        const tdRate = tbody.querySelector(`td[data-idx-rate="${idx}"]`);
+        if (tdRate) tdRate.textContent = appliedRate + '%';
     });
 
-    // 適用バック率を決定
-    let appliedRate = null;
-    let ratio = 0;
-    if (overallRate > 0) {
-        appliedRate = overallRate;
-    } else if (basePay > 0) {
-        ratio = ((basePay + rawBackTotal) / basePay) * 100;
-        appliedRate = getBackRate(ratio);
-    }
+    const total = Math.round(basePay + backTotal);
 
-    const adjustedPerItem = rawPerItem.map(it => {
-        if (appliedRate !== null) return { ...it, back: it.backRaw * (appliedRate / 100) };
-        return { ...it, back: it.backRaw };
-    });
+    summary.innerHTML = '';
+    summary.appendChild(makePill('時給ベース', basePay));
+    summary.appendChild(makePill('バック合計', Math.round(backTotal)));
+    summary.appendChild(makePill('適用バック率', appliedRate + '%'));
+    summary.appendChild(makePill('合計（概算）', total, true));
 
-    const adjustedBackTotal = adjustedPerItem.reduce((s, it) => s + (it.back || 0), 0);
-    const total = Math.round(basePay + adjustedBackTotal);
-
-    // テーブル表示
-    adjustedPerItem.forEach((it, idx) => {
-        const td = tbody.querySelector(`td[data-idx-out="${idx}"]`);
-        if (td) td.textContent = Math.round(it.back).toLocaleString() + ' 円';
-    });
-
-    // サマリー
-    if (summary) summary.innerHTML = '';
-    const basePill = makePill('時給ベース', basePay);
-    const backPill = makePill('バック合計', Math.round(adjustedBackTotal));
-    const totalPill = makePill('合計（概算）', total, true);
-    const rateLabel = overallRate > 0 ? '適用バック率（手入力）' : (appliedRate !== null ? `適用バック率（倍率 ${ratio.toFixed(1)}% 基準）` : 'バック率');
-    const rateValue = appliedRate !== null ? (appliedRate + ' %') : '—';
-    const ratePill = makePill(rateLabel, rateValue);
-
-    summary.appendChild(basePill);
-    summary.appendChild(backPill);
-    summary.appendChild(ratePill);
-    summary.appendChild(totalPill);
-
-    return {
-        wage, hours, basePay,
-        rawBackTotal, adjustedBackTotal, total,
-        items: adjustedPerItem,
-        appliedRate, ratio
-    };
+    return { basePay, backTotal, total, appliedRate, items };
 }
 
 function makePill(label, amount, big = false) {
