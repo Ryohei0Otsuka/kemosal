@@ -32,12 +32,12 @@ function renderItems() {
     items.forEach((it, idx) => {
         const tr = document.createElement('tr');
         tr.innerHTML = `
-      <td><input type="text" value="${escapeHtml(it.name)}" data-idx="${idx}" data-key="name"></td>
-      <td><input type="number" value="${it.price}" min="0" data-idx="${idx}" data-key="price"></td>
-      <td><input type="number" value="${it.count}" min="0" step="1" data-idx="${idx}" data-key="count"></td>
-      <td class="muted" data-idx-out="${idx}">0</td>
-      <td class="item-actions"><button data-action="del" data-idx="${idx}" class="ghost">削除</button></td>
-    `;
+            <td><input type="text" value="${escapeHtml(it.name)}" data-idx="${idx}" data-key="name"></td>
+            <td><input type="number" value="${it.price}" min="0" data-idx="${idx}" data-key="price"></td>
+            <td><input type="number" value="${it.count}" min="0" step="1" data-idx="${idx}" data-key="count"></td>
+            <td class="muted" data-idx-out="${idx}">0</td>
+            <td class="item-actions"><button data-action="del" data-idx="${idx}" class="ghost">削除</button></td>
+        `;
         tbody.appendChild(tr);
     });
 
@@ -88,7 +88,6 @@ function calculate() {
     const hours = Number($('hours').value) || 0;
     const basePay = wage * hours;
 
-    // 売上合計
     const rawTotal = items.reduce((s, it) => s + it.price * it.count, 0);
     const appliedRate = getBackRate(((basePay + rawTotal) / basePay) * 100);
 
